@@ -14,7 +14,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 object AvroSpark {
 
   def main(args: Array[String]) {
-    val input = "/Users/hailingu/Downloads/spark-1.2.0.2.2.0.0-82-bin-2.6.0.2.2.0.0-2041/LICENSE"
+    val input = args(0)
 
     val conf = new SparkConf
     val sc = new SparkContext(conf)
