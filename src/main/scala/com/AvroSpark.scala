@@ -19,10 +19,6 @@ object AvroSpark {
     val conf = new SparkConf
     val sc = new SparkContext(conf)
 
-
-
-    System.out.println("acb")
-
     val hconf = new org.apache.hadoop.conf.Configuration
     val job = Job.getInstance
     val schema = ReflectData.get().getSchema(classOf[Rcord])
