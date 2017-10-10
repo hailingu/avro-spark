@@ -35,13 +35,12 @@ object AvroSpark {
     AvroJob.setInputKeySchema(job, schema)
 
     sc.textFile(input).map(x => {
-     // println(x)
-      (new AvroKey(new Rcord(1, x)), NullWritable.get)
+      (new AvroKey(new Rcord(1, x)), null)
     }).saveAsNewAPIHadoopFile("avro",
-        classOf[AvroKey[Rcord]],
-        classOf[org.apache.hadoop.io.NullWritable],
-        classOf[AvroKeyOutputFormat[Rcord]],
-        job.getConfiguration)
+      classOf[AvroKey[Rcord]],
+      classOf[org.apache.hadoop.io.NullWritable],
+      classOf[AvroKeyOutputFormat[Rcord]],
+      job.getConfiguration)
 
     val r2 = sc.newAPIHadoopFile[AvroKey[Rcord], NullWritable, AvroKeyInputFormat[Rcord]](
       "avro",

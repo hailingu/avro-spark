@@ -16,6 +16,7 @@ public class Rcord {
     @Nullable
     public String content;
 
+    @Nullable
     public Map<String, String> map;
 
     public Rcord() {
@@ -28,6 +29,20 @@ public class Rcord {
         content = c;
         map.put("k", c);
     }
+
+
+    public int getLineNu() {
+        return lineNu;
+    }
+
+    public String getContent() {
+        return content;
+    }
+
+    public Map<String, String> getMap() {
+        return map;
+    }
+
 
     @Override
     public String toString() {
