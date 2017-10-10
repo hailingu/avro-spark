@@ -14,7 +14,7 @@ import org.apache.spark.{SparkConf, SparkContext}
 object AvroSpark {
 
   def main(args: Array[String]) {
-    val input = "iris.csv"
+    val input = "src/main/resources/iris.csv"
 
     val conf = new SparkConf
     conf.set("spark.master", "local[2]")
