@@ -55,8 +55,8 @@ class AvroParquetSparkJob[T: ClassTag] extends java.io.Serializable {
   }
 
 
-  def parquetFile[U: ClassTag](path: String)
-                    (implicit m: ClassTag[U]): RDD[U] = {
+  def parquetFile(path: String)
+                    (implicit m: ClassTag[T]): RDD[T] = {
     val sqlContext = new SQLContext(sc)
     sqlContext.read.format("parquet").load(path).registerTempTable("tmp")
     val rcordEncoder = Encoders.bean(m.runtimeClass.asInstanceOf[Class[U]])
