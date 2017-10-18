@@ -2,29 +2,48 @@ package com
 
 import org.apache.avro.Schema
 import org.apache.avro.generic.GenericData
+import org.apache.avro.mapred.AvroKey
+import org.apache.avro.mapreduce.{AvroJob, AvroKeyInputFormat, AvroKeyOutputFormat}
 import org.apache.avro.reflect.ReflectData
+import org.apache.hadoop.io.NullWritable
 import org.apache.hadoop.mapreduce.Job
 import org.apache.parquet.avro.{AvroParquetOutputFormat, AvroWriteSupport}
 import org.apache.parquet.hadoop.ParquetOutputFormat
+import org.apache.spark.SparkContext
 import org.apache.spark.rdd.RDD
 import org.apache.spark.sql.{Encoders, SQLContext}
-import org.apache.spark.{SparkConf, SparkContext}
 import org.springframework.beans.PropertyAccessorFactory
 
 import scala.reflect.ClassTag
 
-class AvroParquetSparkJob[T: ClassTag] extends java.io.Serializable {
+class DataModelContext(val sc: SparkContext) {
 
-  var sc: SparkContext = _
-
-  def init(conf: SparkConf)(implicit m: ClassTag[T]): AvroParquetSparkJob[T] = {
-    conf.registerKryoClasses(Array(m.runtimeClass.asInstanceOf[Class[T]],
-      classOf[GenericData.Record], classOf[AvroParquetSparkJob[T]]))
-    this.sc = new SparkContext(conf)
-    this
+  def saveAvroFile[T](rdd: RDD[T], path: String)(implicit m: ClassTag[T]): Unit = {
+    if (null == this.sc) return
+    val job = Job.getInstance()
+    val schema = ReflectData.get().getSchema(m.runtimeClass.asInstanceOf[Class[T]])
+    AvroJob.setOutputKeySchema(job, schema)
+    rdd.map(t => (new AvroKey[T](t), null)).saveAsNewAPIHadoopFile(path,
+      classOf[AvroKey[T]],
+      classOf[org.apache.hadoop.io.NullWritable],
+      classOf[AvroKeyOutputFormat[T]],
+      job.getConfiguration)
   }
 
-  def saveAsParquetFile(records: RDD[T], path: String)(implicit m: ClassTag[T]) = {
+  def AvroFile[T](path: String)(implicit m: ClassTag[T]): RDD[T] = {
+    if (null == this.sc) return null
+    val job = Job.getInstance()
+    val schema = ReflectData.get().getSchema(m.runtimeClass.asInstanceOf[Class[T]])
+    AvroJob.setInputKeySchema(job, schema)
+    sc.newAPIHadoopFile[AvroKey[T], NullWritable, AvroKeyInputFormat[T]](
+      "avro",
+      classOf[AvroKeyInputFormat[T]],
+      classOf[AvroKey[T]],
+      classOf[NullWritable],
+      job.getConfiguration).map(_._1.datum())
+  }
+
+  def saveAsParquetFile[T](records: RDD[T], path: String)(implicit m: ClassTag[T]) = {
     val schema = ReflectData.get().getSchema(m.runtimeClass.asInstanceOf[Class[T]])
     val job = Job.getInstance()
     AvroParquetOutputFormat.setSchema(job, schema)
@@ -55,11 +74,11 @@ class AvroParquetSparkJob[T: ClassTag] extends java.io.Serializable {
   }
 
 
-  def parquetFile[U: ClassTag](path: String)
-                    (implicit m: ClassTag[U]): RDD[U] = {
+  def parquetFile[T](path: String)
+                    (implicit m: ClassTag[T]): RDD[T] = {
     val sqlContext = new SQLContext(sc)
     sqlContext.read.format("parquet").load(path).registerTempTable("tmp")
-    val rcordEncoder = Encoders.bean(m.runtimeClass.asInstanceOf[Class[U]])
+    val rcordEncoder = Encoders.bean(m.runtimeClass.asInstanceOf[Class[T]])
     sqlContext.sql("SELECT * FROM tmp").as(rcordEncoder).rdd
   }
 }
