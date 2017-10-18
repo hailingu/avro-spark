@@ -21,7 +21,8 @@ object AvroParquetExample {
       dataModel
     })
 
-    avroParquetSparkJob.saveAsParquetFile(dataModelRdd, output, avroParquetSparkJob.schemaStr)
+    //avroParquetSparkJob.saveAsParquetFile(dataModelRdd, output, avroParquetSparkJob.schemaStr)
+    avroParquetSparkJob.saveAsParquetFile(dataModelRdd, output)
     val retrieveRdd = avroParquetSparkJob.parquetFile[DataModel](output)
     retrieveRdd.collect().foreach(println(_))
   }
