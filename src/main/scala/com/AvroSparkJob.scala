@@ -39,7 +39,7 @@ class AvroSparkJob[T: ClassTag] extends java.io.Serializable {
     val job = Job.getInstance()
     AvroJob.setInputKeySchema(job, schema)
     sc.newAPIHadoopFile[AvroKey[T], NullWritable, AvroKeyInputFormat[T]](
-      "avro",
+      path,
       classOf[AvroKeyInputFormat[T]],
       classOf[AvroKey[T]],
       classOf[NullWritable],
