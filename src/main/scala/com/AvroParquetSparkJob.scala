@@ -24,7 +24,7 @@ class AvroParquetSparkJob[T: ClassTag] extends java.io.Serializable {
     this
   }
 
-  def saveAsParquetFile(records: RDD[T], path: String)(implicit m: ClassTag[T]) = {
+  def saveAsParquetFile[T](records: RDD[T], path: String)(implicit m: ClassTag[T]) = {
     val schema = ReflectData.get().getSchema(m.runtimeClass.asInstanceOf[Class[T]])
     val job = Job.getInstance()
     AvroParquetOutputFormat.setSchema(job, schema)
@@ -55,11 +55,11 @@ class AvroParquetSparkJob[T: ClassTag] extends java.io.Serializable {
   }
 
 
-  def parquetFile(path: String)
+  def parquetFile[T](path: String)
                     (implicit m: ClassTag[T]): RDD[T] = {
     val sqlContext = new SQLContext(sc)
     sqlContext.read.format("parquet").load(path).registerTempTable("tmp")
-    val rcordEncoder = Encoders.bean(m.runtimeClass.asInstanceOf[Class[U]])
+    val rcordEncoder = Encoders.bean(m.runtimeClass.asInstanceOf[Class[T]])
     sqlContext.sql("SELECT * FROM tmp").as(rcordEncoder).rdd
   }
 }

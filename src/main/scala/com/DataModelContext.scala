@@ -72,7 +72,7 @@ class DataModelContext(val sc: SparkContext) {
       job.getConfiguration
     )
   }
-  
+
   def parquetFile[T](path: String)
                     (implicit m: ClassTag[T]): RDD[T] = {
     val sqlContext = new SQLContext(sc)

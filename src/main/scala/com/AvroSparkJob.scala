@@ -34,7 +34,7 @@ class AvroSparkJob[T: ClassTag] extends java.io.Serializable {
       job.getConfiguration)
   }
 
-  def AvroFile(path: String)(implicit m: ClassTag[T]): RDD[T] = {
+  def AvroFile[T](path: String)(implicit m: ClassTag[T]): RDD[T] = {
     if (null == this.sc) return null
     val job = Job.getInstance()
     AvroJob.setInputKeySchema(job, schema)
